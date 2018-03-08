@@ -1,0 +1,16 @@
+{
+  "name": "routing-controller-swagger",
+  "version": "0.0.1",
+  "main": "index.js",
+  "author": "ruiming.zhuang",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@types/glob": "^5.0.35",
+    "@types/node": "^9.4.6",
+    "glob": "^7.1.2",
+    "reflect-metadata": "^0.1.12",
+    "routing-controllers": "^0.7.7",
+    "typescript-json-schema": "^0.21.0"
+  }
+}
