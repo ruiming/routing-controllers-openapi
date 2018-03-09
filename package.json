@@ -1,11 +1,11 @@
 {
-  "name": "routing-controller-swagger",
-  "version": "0.0.1",
-  "main": "index.js",
-  "author": "ruiming.zhuang",
+  "name": "routing-controllers-openapi-v3",
+  "version": "0.0.1-alpha1",
+  "main": "build/index.js",
+  "author": "ruiming<ruiming.zhuang@gmail.com>",
   "license": "MIT",
-  "private": true,
   "dependencies": {
+    "@loopback/openapi-v3-types": "^0.2.2",
     "@types/glob": "^5.0.35",
     "@types/node": "^9.4.6",
     "glob": "^7.1.2",
