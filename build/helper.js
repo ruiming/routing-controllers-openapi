@@ -16,7 +16,7 @@ function Summary(summary) {
 exports.Summary = Summary;
 function ResType(type) {
     return (target, propertyName, descriptor) => {
-        const typename = Array.isArray(type) ? type[0].name : `${type.name}[]`;
+        const typename = Array.isArray(type) ? `${type[0].name}[]` : type.name;
         Reflect.defineMetadata('design:returntype2', typename, target, propertyName);
     };
 }
