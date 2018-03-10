@@ -1,6 +1,6 @@
 {
   "name": "routing-controllers-openapi-v3",
-  "version": "0.0.1-alpha3",
+  "version": "0.0.1-alpha4",
   "main": "build/index.js",
   "author": "ruiming<ruiming.zhuang@gmail.com>",
   "license": "MIT",

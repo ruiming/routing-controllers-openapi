@@ -97,6 +97,9 @@ function docGenerator(storage, docConfig) {
                 IS_RETURN_TYPE_IS_ARRAY = true;
                 returnType = returnType.replace('[]', '');
             }
+            if (IS_RETURN_TYPE_IS_JS_TYPE) {
+                returnType = returnType.toLowerCase();
+            }
             if (!IS_RETURN_TYPE_IS_JS_TYPE && !doc.components.schemas[returnType]) {
                 const definitions = JSON.stringify(generator.getSchemaForSymbol(returnType));
                 const regex = /#\/definitions\/(\w+)/g;
