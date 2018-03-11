@@ -50,6 +50,28 @@ export interface DocConfig {
   outputFile?: string
 }
 
+/**
+ * walk through json-schema and find sub ref
+ */
+function definitionParse (doc: any, generator: any, definitions: string) {
+  const regex = /#\/definitions\/(\w+)/g
+  for (;;) {
+    const definitionMatchGroup = regex.exec(definitions)
+    if (definitionMatchGroup === null) {
+      break
+    } else {
+      if (!doc.components!.schemas![definitionMatchGroup[1]]) {
+        doc.components!.schemas![definitionMatchGroup[1]] = JSON.parse(
+          JSON.stringify(generator.getSchemaForSymbol(definitionMatchGroup[1])).replace(
+            /#\/definitions\//g,
+            '#/components/schemas/'
+          )
+        )
+      }
+    }
+  }
+}
+
 export default async function docGenerator(storage: MetadataArgsStorage, docConfig: DocConfig) {
   // if no version specifiy, the version of package.json will be used
   docConfig.info.version = docConfig.info.version || JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), { encoding: 'utf8' })).version
@@ -123,22 +145,7 @@ export default async function docGenerator(storage: MetadataArgsStorage, docConf
 
     if (!IS_RETURN_TYPE_IS_JS_TYPE && !doc.components!.schemas![returnType]) {
       const definitions = JSON.stringify(generator.getSchemaForSymbol(returnType))
-      const regex = /#\/definitions\/(\w+)/g
-      for (;;) {
-        const definitionMatchGroup = regex.exec(definitions)
-        if (definitionMatchGroup === null) {
-          break
-        } else {
-          if (!doc.components!.schemas![definitionMatchGroup[1]]) {
-            doc.components!.schemas![definitionMatchGroup[1]] = JSON.parse(
-              JSON.stringify(generator.getSchemaForSymbol(definitionMatchGroup[1])).replace(
-                /#\/definitions\//g,
-                '#/components/schemas/'
-              )
-            )
-          }
-        }
-      }
+      definitionParse(doc, generator, definitions);
       doc.components!.schemas![returnType] = JSON.parse(definitions.replace(/#\/definitions\//g, '#/components/schemas/'))
     }
   
@@ -208,9 +215,10 @@ export default async function docGenerator(storage: MetadataArgsStorage, docConf
         case 'body':
           const bodyType = paramTypes[paramNames.findIndex(name => name === (param.name || param.type))].name
           if (bodyType !== undefined && doc.components!.schemas![bodyType] === undefined) {
-            const definition = generator.getSchemaForSymbol(bodyType)
-            Reflect.deleteProperty(definition, '$schema')
-            doc.components!.schemas![bodyType] = definition as {}
+            const definition = JSON.stringify(generator.getSchemaForSymbol(bodyType))
+            definitionParse(doc, generator, definition);
+            doc.components!.schemas![bodyType] = JSON.parse(definition.replace(/#\/definitions\//g, '#/components/schemas/'))
+            Reflect.deleteProperty(doc.components!.schemas![bodyType], '$schema')
           }
           operation.requestBody = {
             required: true,

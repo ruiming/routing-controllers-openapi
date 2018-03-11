@@ -42,6 +42,23 @@ __export(require("./helper"));
 class DefaultSuccessResponse {
 }
 exports.DefaultSuccessResponse = DefaultSuccessResponse;
+/**
+ * walk through json-schema and find sub ref
+ */
+function definitionParse(doc, generator, definitions) {
+    const regex = /#\/definitions\/(\w+)/g;
+    for (;;) {
+        const definitionMatchGroup = regex.exec(definitions);
+        if (definitionMatchGroup === null) {
+            break;
+        }
+        else {
+            if (!doc.components.schemas[definitionMatchGroup[1]]) {
+                doc.components.schemas[definitionMatchGroup[1]] = JSON.parse(JSON.stringify(generator.getSchemaForSymbol(definitionMatchGroup[1])).replace(/#\/definitions\//g, '#/components/schemas/'));
+            }
+        }
+    }
+}
 function docGenerator(storage, docConfig) {
     return __awaiter(this, void 0, void 0, function* () {
         // if no version specifiy, the version of package.json will be used
@@ -102,18 +119,7 @@ function docGenerator(storage, docConfig) {
             }
             if (!IS_RETURN_TYPE_IS_JS_TYPE && !doc.components.schemas[returnType]) {
                 const definitions = JSON.stringify(generator.getSchemaForSymbol(returnType));
-                const regex = /#\/definitions\/(\w+)/g;
-                for (;;) {
-                    const definitionMatchGroup = regex.exec(definitions);
-                    if (definitionMatchGroup === null) {
-                        break;
-                    }
-                    else {
-                        if (!doc.components.schemas[definitionMatchGroup[1]]) {
-                            doc.components.schemas[definitionMatchGroup[1]] = JSON.parse(JSON.stringify(generator.getSchemaForSymbol(definitionMatchGroup[1])).replace(/#\/definitions\//g, '#/components/schemas/'));
-                        }
-                    }
-                }
+                definitionParse(doc, generator, definitions);
                 doc.components.schemas[returnType] = JSON.parse(definitions.replace(/#\/definitions\//g, '#/components/schemas/'));
             }
             const operation = {
@@ -181,9 +187,10 @@ function docGenerator(storage, docConfig) {
                     case 'body':
                         const bodyType = paramTypes[paramNames.findIndex(name => name === (param.name || param.type))].name;
                         if (bodyType !== undefined && doc.components.schemas[bodyType] === undefined) {
-                            const definition = generator.getSchemaForSymbol(bodyType);
-                            Reflect.deleteProperty(definition, '$schema');
-                            doc.components.schemas[bodyType] = definition;
+                            const definition = JSON.stringify(generator.getSchemaForSymbol(bodyType));
+                            definitionParse(doc, generator, definition);
+                            doc.components.schemas[bodyType] = JSON.parse(definition.replace(/#\/definitions\//g, '#/components/schemas/'));
+                            Reflect.deleteProperty(doc.components.schemas[bodyType], '$schema');
                         }
                         operation.requestBody = {
                             required: true,
